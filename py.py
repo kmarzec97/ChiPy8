@@ -4,11 +4,31 @@
 #* REPAIR SOME OPDECODERS
 from ctypes import *
 from tkinter import *
+import  time
 import random
 
-def cykDwojeczka():
-    print('You just pressed button')
 
+#Binded only few keys to not slow down emulation even more
+def keyPress(event):
+    if event.char == '1':
+        chip8.keypad[1] = 1
+    if event.char == 'q':
+        chip8.keypad[4] = 1
+    if event.char == '4':
+        chip8.keypad[12] = 1
+    if event.char == 'r':
+        chip8.keypad[13] = 1
+
+def keyRelease(event):
+    if event.char == '1':
+        chip8.keypad[1] = 0
+    if event.char == 'q':
+        chip8.keypad[4] = 0
+    if event.char == '4':
+        chip8.keypad[12] = 0
+    if event.char == 'r':
+        chip8.keypad[13] = 0
+#==========================================================
 class CPU:
     drawPicture: c_int
     memory: c_uint8 = [0]*0x1000
@@ -50,7 +70,7 @@ class CPU:
         print(self.memory)
     def loadROM(self):
         try:
-            rom = open("Pong2.ch8", 'rb').read()
+            rom = open("PONG2", 'rb').read()
         except IOError:
             print('Rom not found.')
             exit()
@@ -248,15 +268,21 @@ class CPU:
 
 chip8 = CPU()
 root = Tk()
-root.geometry('640x320')
+root.geometry('1280x640')
 root.title('ChiPy8')
 root.resizable(False,False)
 root.update()
-frame = Frame(root, width=100, height=100)
 resMultip = int(root.winfo_height()/32)
+frame = Frame(root)
+frame.bind("<KeyPress>", keyPress)
+frame.bind("<KeyRelease>", keyRelease)
+frame.pack()
+frame.focus_set()
 c = Canvas(root,width=root.winfo_width(),height=root.winfo_height(),bg='black')
 s = []
 i = 0
+startTime = time.time()
+CPS = 0
 while i < int(root.winfo_height()):
     j = 0
     while j < int(root.winfo_width()):
@@ -265,12 +291,15 @@ while i < int(root.winfo_height()):
         j+=resMultip
     i+=resMultip
 while True:
-    frame.bind("<Key>",cykDwojeczka)
-    frame.pack()
+    if time.time() - startTime  >= 1:
+        print(CPS)
+        startTime = time.time()
+        CPS = 0
     #chip8.keypad[1] = 1 KEYBOARD LISTENING TEST
     chip8.CPUCycle()
+    CPS += 1
     #print(chip8.programCounter,chip8.opcode)
-#screen rendering POOR PERFORMANCE (SOFTWARE RENDERING)!!
+    #screen rendering POOR PERFORMANCE (SOFTWARE RENDERING)!!
     if chip8.drawPicture == 1:
         i = 0
         while i < 0x800:
@@ -280,5 +309,5 @@ while True:
                 c.itemconfig(s[i],fill='black')
             i+=1
         chip8.drawPicture = 0
+        root.update()
 #===================================
-    root.update()
