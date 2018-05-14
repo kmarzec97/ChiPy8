@@ -1,7 +1,14 @@
+#TO DO LIST:
+#* SOUND IMPLEMENTATION
+#* KEYBOARD SUPPORT
+#* REPAIR SOME OPDECODERS
 from ctypes import *
 from tkinter import *
-import pygame.mixer
-pygame.init()
+import random
+
+def cykDwojeczka():
+    print('You just pressed button')
+
 class CPU:
     drawPicture: c_int
     memory: c_uint8 = [0]*0x1000
@@ -36,15 +43,19 @@ class CPU:
         self.delayTicker = 0
         self.soundTicker = 10
         self.loadROM()
+        print("Reading and executing ROM")
     def getDrawPicture(self):
         return self.drawPicture
     def memoryDump(self):
         print(self.memory)
     def loadROM(self):
-        rom = open("PONG2", 'rb').read()
+        try:
+            rom = open("Pong2.ch8", 'rb').read()
+        except IOError:
+            print('Rom not found.')
+            exit()
         for index, val in enumerate(rom):
             self.memory[index + 512] = val
-        print("Let's suppose it was loaded xD")
     def resetInternals(self):
         i = 0
         while i < 0x10:
@@ -158,7 +169,7 @@ class CPU:
         elif(self.opcode & 0xF000) == 0xB000:
             self.programCounter = (self.opcode & 0x0FFF) + self.regs(0x0)
         elif(self.opcode & 0xF000) == 0xC000:
-            self.regs[(self.opcode & 0x0F00) >> 8] = (100%(0xFF + 1)) & (self.opcode & 0x00FF)
+            self.regs[(self.opcode & 0x0F00) >> 8] = (random.randint(0,0xFF)+1) & (self.opcode & 0x00FF)
             self.programCounter += 2
         elif(self.opcode & 0xF000) == 0xD000:
             self.coordX = self.regs[(self.opcode & 0x0F00) >> 8]
@@ -235,28 +246,30 @@ class CPU:
                 print("BEEP")
             self.soundTicker -= 1
 
-screen = pygame.display.set_mode((600,400))
 chip8 = CPU()
-pygame.init()
 root = Tk()
 root.geometry('640x320')
 root.title('ChiPy8')
 root.resizable(False,False)
 root.update()
-frame = Frame(root,width=100, height=100)
+frame = Frame(root, width=100, height=100)
+resMultip = int(root.winfo_height()/32)
 c = Canvas(root,width=root.winfo_width(),height=root.winfo_height(),bg='black')
 s = []
 i = 0
-while i < 320:
+while i < int(root.winfo_height()):
     j = 0
-    while j < 640:
-        s.append(c.create_rectangle(j,i,j+10,i+10, fill='white'))
+    while j < int(root.winfo_width()):
+        s.append(c.create_rectangle(j,i,j+resMultip,i+resMultip, fill='white'))
         c.pack()
-        j+=10
-    i+=10
+        j+=resMultip
+    i+=resMultip
 while True:
-    chip8.keypad[1] = 1
+    frame.bind("<Key>",cykDwojeczka)
+    frame.pack()
+    #chip8.keypad[1] = 1 KEYBOARD LISTENING TEST
     chip8.CPUCycle()
+    #print(chip8.programCounter,chip8.opcode)
 #screen rendering POOR PERFORMANCE (SOFTWARE RENDERING)!!
     if chip8.drawPicture == 1:
         i = 0
