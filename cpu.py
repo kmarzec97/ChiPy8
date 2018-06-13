@@ -1,33 +1,4 @@
-#TO DO LIST:
-#* REPAIR SOME OPDECODERS
 from ctypes import *
-from tkinter import *
-import random
-import subprocess
-
-#Binded only few keys to not slow down emulation even more
-def keyPress(event):
-    if event.char == '1':
-        chip8.keypad[1] = 1
-    if event.char == 'q':
-        chip8.keypad[4] = 1
-    if event.char == '4':
-        chip8.keypad[12] = 1
-    if event.char == 'r':
-        chip8.keypad[13] = 1
-    if event.keysym == 'Escape':
-        root.destroy()
-
-def keyRelease(event):
-    if event.char == '1':
-        chip8.keypad[1] = 0
-    if event.char == 'q':
-        chip8.keypad[4] = 0
-    if event.char == '4':
-        chip8.keypad[12] = 0
-    if event.char == 'r':
-        chip8.keypad[13] = 0
-#==========================================================
 class CPU:
     drawPicture: c_int
     memory: c_uint8 = [0]*0x1000
@@ -69,7 +40,7 @@ class CPU:
         print(self.memory)
     def loadROM(self):
         try:
-            rom = open("wall.rom", 'rb').read()
+            rom = open("tank.rom", 'rb').read()
         except IOError:
             print('Rom not found.')
             exit()
@@ -285,40 +256,3 @@ class CPU:
                 subprocess.call('play --no-show-progress --null --channels 1 synth %s sine %f' % (0.05, 500), shell=True)
             self.soundTicker -= 1
 
-chip8 = CPU()
-root = Tk()
-root.geometry('1280x640') #Resolution ONLY in 2:1 aspect ratio!
-root.title('ChiPy8')
-root.resizable(False,False)
-root.update()
-resMultip = int(root.winfo_height()/32)
-frame = Frame(root)
-frame.bind("<KeyPress>", keyPress)
-frame.bind("<KeyRelease>", keyRelease)
-frame.pack()
-frame.focus_set()
-c = Canvas(root,width=root.winfo_width(),height=root.winfo_height(),bg='black')
-s = []
-i = 0
-while i < int(root.winfo_height()):
-    j = 0
-    while j < int(root.winfo_width()):
-        s.append(c.create_rectangle(j,i,j+resMultip,i+resMultip, fill='white'))
-        c.pack()
-        j+=resMultip
-    i+=resMultip
-while True:
-    chip8.CPUCycle()
-    #print(chip8.programCounter,chip8.opcode)
-    #screen rendering POOR PERFORMANCE (SOFTWARE RENDERING)!!
-    if chip8.drawPicture == 1:
-        i = 0
-        while i < 0x800:
-            if chip8.picture[i] == 1:
-                c.itemconfig(s[i],fill='white')
-            else:
-                c.itemconfig(s[i],fill='black')
-            i+=1
-        chip8.drawPicture = 0
-        root.update()
-#===================================
