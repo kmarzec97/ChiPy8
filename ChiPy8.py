@@ -254,7 +254,7 @@ class CPU:
             self.programCounter += 2
     #BNNN
         elif(self.opcode >> 12) == 0xB:
-            self.programCounter = ((self.opcode & 0x0FFF) + self.regs(0x0))%65536
+            self.programCounter = ((self.opcode & 0x0FFF) + self.regs[0x0])%65536
     #CNNN
         elif(self.opcode >> 12) == 0xC:
             self.regs[(self.opcode & 0x0F00) >> 8] = ((random.randint(0,0x100)) & (self.opcode & 0x00FF))%256
@@ -357,7 +357,8 @@ if len(sys.argv) > 2:
 else:
     speed = 0.002
 if len(sys.argv) > 3:
-    game = sys.argv[3]
+    game = "games/"+ sys.argv[3]
+    print(game)
 else:
     game = "brix.ch8"
 if len(sys.argv) > 4:
